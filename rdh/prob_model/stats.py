@@ -1,9 +1,6 @@
-
 import numpy as np
 from ..graph.resource_graph import ResourceGraph
-from ..util.trace import trace
 
-@trace
 def hhi(graph: ResourceGraph, override_recipients: np.ndarray = None, assertion: bool = False):
     # 0. check if recipients are correct, or just start
     if isinstance(override_recipients, np.ndarray):

@@ -1,9 +1,14 @@
-import os
-from dotenv import load_dotenv
 from pathlib import Path
 from typing import TypedDict
+import os
 
-load_dotenv()
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv()
+    IS_PRODUCTION = False
+except ImportError:
+    IS_PRODUCTION = True
 
 class RDHEnvrionment(TypedDict):
     db_path: Path
@@ -18,9 +23,9 @@ def get_environ() -> RDHEnvrionment:
 
     trace_path = Path(os.environ.get("RDH_TRACE_DIR"))
     if not trace_path:
-        raise ValueError("RDH_TRACE_DIR 환경변수(tron.db 파일 경로)를 설정하세요.")
+        raise ValueError("RDH_TRACE_DIR 환경변수(파일 경로)를 설정하세요.")
 
-    trace_mem = os.environ.get("RDH_TRACE_MEM") == 'True'
+    trace_mem = False if IS_PRODUCTION else os.environ.get("RDH_TRACE_MEM") == 'True'
     return { 
         "db_path": db_path, 
         "trace_path": trace_path,

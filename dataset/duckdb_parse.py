@@ -2,10 +2,10 @@ import time
 import duckdb
 from pathlib import Path
 
-from .graph.resource_graph import ResourceGraph
-from .graph.compress import compress_graph
-from .util.environment import get_environ
-from .util.trace import trace
+from rdh.graph.resource_graph import ResourceGraph
+from rdh.graph.compress import compress_graph
+from dataset.util.environment import get_environ
+from dataset.util.trace import trace
 
 def get_duckdb_connection(db_path, memory_limit: str = "8GB", threads: int = 4):
     con = duckdb.connect(str(Path(db_path).expanduser()), read_only=True)
@@ -26,14 +26,14 @@ def get_duckdb_resource_graph(start, end) -> ResourceGraph:
     ORDER BY from_addr, to_addr
     """
     try:
-        print(f"fetching un-deduped, un-weighted resource graph of {start}~{end}")
+        print(f"[duckdb] fetching un-deduped, un-weighted resource graph of {start}~{end}")
         t0 = time.perf_counter()
         df = con.execute(sql, [start, end]).df()
         t1 = time.perf_counter()
         src = df["src"].to_numpy()
         dst = df["dst"].to_numpy()
         t2 = time.perf_counter()
-        print(f"query time : {t1 - t0}, conversion time: {t2 - t1}, records : {len(df)}")
+        print(f"[duckdb] query time : {t1 - t0}, conversion time: {t2 - t1}, records : {len(df)}")
 
         # check if data doens't contain any loops
         assert (src == dst).sum() == 0

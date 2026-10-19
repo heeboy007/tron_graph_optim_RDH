@@ -22,11 +22,7 @@ CTestTestfile.cmake
 _deps
 CMakeUserPresets.json
 
-#scribble
-scribble
-
 #dataset files
-data/*
-data_p/*
-*.parquet
-*.pkl
+trace/trace_*.json
+*.db
+old*.py
