@@ -13,13 +13,13 @@ if __name__ == "__main__":
     graph = get_duckdb_resource_graph(start, end)
 
     # this cdf must be calculated with entire dataset
-    cdf_r = build_cdf_r(graph)
+    recipient_count = np.bincount(graph["dst"], minlength=graph["node_count"])
 
     # split dataset for suited pipleines
     split = split_dataset(graph)
 
     monte_carlo_p_value_multicore = trace(monte_carlo_p_value_multicore)
-    p_values = monte_carlo_p_value_multicore(split["mc"], cdf_r, environ["tmp_path"])
+    p_values = monte_carlo_p_value_multicore(split["mc"], recipient_count, environ["tmp_path"])
     np.save(environ["tmp_path"] / "p_value.npy", p_values)
     print(p_values[p_values < 1.0])
     #print_stats()

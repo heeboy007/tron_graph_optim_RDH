@@ -1,12 +1,13 @@
 import numpy as np
 
-from ..prob_model.cdf import sample_from_cdf_r
+from ..prob_model.cdf import build_cdf_r, sample_from_cdf_r
 from ..prob_model.stats import graph_ss, ss
 from ..graph.resource_graph_type import SimpleGraph
 
 # single-core
-def monte_carlo_p_value(graph: SimpleGraph, cdf_r: np.ndarray, n_monte_carlo = 8000):
+def monte_carlo_p_value(graph: SimpleGraph, g_recipient_count: np.ndarray, n_monte_carlo = 8000):
     observed_ss_mc = graph_ss(graph)
+    cdf_r = build_cdf_r(g_recipient_count)
     
     exceed = np.zeros((graph["node_count"], ), dtype=np.int32)
     for task_id in range(n_monte_carlo):

@@ -24,9 +24,14 @@ def full_graph():
 
 
 @pytest.fixture(scope="session")
-def cdf_r(full_graph):
-    # main.py와 같이 cdf는 전체 데이터셋으로 만든다
-    return build_cdf_r(full_graph)
+def g_recipient_count(full_graph):
+    # main.py와 같이 recipient count는 전체 데이터셋으로 만든다
+    return np.bincount(full_graph["dst"], minlength=full_graph["node_count"])
+
+
+@pytest.fixture(scope="session")
+def cdf_r(g_recipient_count):
+    return build_cdf_r(g_recipient_count)
 
 
 @pytest.fixture(scope="session")

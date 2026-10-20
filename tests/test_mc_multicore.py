@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 
 from conftest import SIMPLIFY_THRESHOLD, ANALYTIC_THRESHOLD
-from rdh.prob_model.cdf import sample_from_cdf_r
+from rdh.prob_model.cdf import build_cdf_r, sample_from_cdf_r
 from rdh.prob_model.stats import graph_ss
 from rdh.pipeline.monte_carlo import monte_carlo_p_value
 from rdh.pipeline.monte_carlo_multicore import monte_carlo_p_value_multicore
@@ -17,15 +17,15 @@ pytestmark = pytest.mark.timeout(900)
 
 
 @pytest.fixture(scope="session")
-def single_core_p(mc_graph, cdf_r):
-    return monte_carlo_p_value(mc_graph, cdf_r, n_monte_carlo=N_MC)
+def single_core_p(mc_graph, g_recipient_count):
+    return monte_carlo_p_value(mc_graph, g_recipient_count, n_monte_carlo=N_MC)
 
 
 @pytest.fixture(scope="session", params=[2, 4, 8])
-def multi_core_p(request, mc_graph, cdf_r, tmp_path_factory):
+def multi_core_p(request, mc_graph, g_recipient_count, tmp_path_factory):
     workers = request.param
     base_path = tmp_path_factory.mktemp(f"mc_w{workers}")
-    p = monte_carlo_p_value_multicore(mc_graph, cdf_r, base_path, n_monte_carlo=N_MC, workers=workers)
+    p = monte_carlo_p_value_multicore(mc_graph, g_recipient_count, base_path, n_monte_carlo=N_MC, workers=workers)
     return workers, base_path, p
 
 
@@ -41,11 +41,23 @@ def test_mc_split_only_contains_mc_providers(mc_graph, full_graph):
     assert (mc_graph["src"] != mc_graph["dst"]).all()
 
 
+def test_recipient_count_matches_full_graph(g_recipient_count, full_graph):
+    assert g_recipient_count.shape == (full_graph["node_count"],)
+    assert g_recipient_count.sum() == full_graph["dst"].size
+    assert (g_recipient_count >= 0).all()
+
+
 def test_cdf_r_is_valid(cdf_r, full_graph):
     assert cdf_r.shape == (full_graph["node_count"],)
     assert (np.diff(cdf_r) >= 0).all(), "cdf가 단조증가가 아니면 searchsorted 결과가 정의되지 않는다"
     assert cdf_r[0] >= 0
     assert cdf_r[-1] == 1.0
+
+
+def test_cdf_r_matches_recipient_mass(cdf_r, g_recipient_count):
+    mass = np.diff(np.concatenate(([0.0], cdf_r)))
+    np.testing.assert_allclose(mass, g_recipient_count / g_recipient_count.sum(), rtol=0, atol=1e-12)
+    assert ((mass > 0) == (g_recipient_count > 0)).all()
 
 
 # ---------- 샘플러 ----------
@@ -99,8 +111,11 @@ def test_non_mc_nodes_are_p_one(multi_core_p, mc_graph, mc_providers):
     assert (p[non_mc] == 1.0).all()
 
 
-def test_worker_files_written_to_given_base_path(multi_core_p, mc_graph, cdf_r):
+def test_worker_files_written_to_given_base_path(multi_core_p, mc_graph, g_recipient_count, cdf_r):
     _, base_path, _ = multi_core_p
     np.testing.assert_array_equal(np.load(base_path / "provider.npy"), mc_graph["src"])
+    np.testing.assert_array_equal(np.load(base_path / "g_recipient_count.npy"), g_recipient_count)
+    # 함수 내부에서 만든 cdf가 g_recipient_count로 만든 cdf와 같아야 한다
     np.testing.assert_array_equal(np.load(base_path / "cdf_r.npy"), cdf_r)
+    np.testing.assert_array_equal(np.load(base_path / "cdf_r.npy"), build_cdf_r(g_recipient_count))
     np.testing.assert_array_equal(np.load(base_path / "observed_ss.npy"), graph_ss(mc_graph))

@@ -1,9 +1,6 @@
 import numpy as np
 
-from ..graph.resource_graph_type import SimpleGraph
-
-def build_cdf_r(graph: SimpleGraph) -> np.ndarray:
-    recipient_count = np.bincount(graph["dst"], minlength=graph["node_count"])
+def build_cdf_r(recipient_count: np.ndarray) -> np.ndarray:
     raw_p_r = np.cumsum(recipient_count).astype(np.float64)
     return (raw_p_r / raw_p_r[-1])
 
