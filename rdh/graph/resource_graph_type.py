@@ -10,3 +10,11 @@ class ResourceGraph(TypedDict, total=False):
     decompress_map: np.ndarray
     node_count: int
 
+class SimpleGraph(TypedDict):
+    src: np.ndarray
+    dst: np.ndarray
+
+class SplitGraph(TypedDict):
+    strong: SimpleGraph
+    mc: SimpleGraph
+    analytic: SimpleGraph

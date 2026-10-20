@@ -1,6 +1,6 @@
 import numpy as np
 
-from .resource_graph import ResourceGraph
+from .resource_graph_type import ResourceGraph
 
 def compress_graph(graph: ResourceGraph) -> ResourceGraph:
     if graph["src"].shape[0] != graph["dst"].shape[0]:

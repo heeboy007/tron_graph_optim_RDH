@@ -1,6 +1,6 @@
 import numpy as np
 
-from ..graph.resource_graph import ResourceGraph
+from ..graph.resource_graph_type import ResourceGraph
 
 def get_rng(seed=42):
     return np.random.default_rng(seed)

@@ -26,3 +26,6 @@ CMakeUserPresets.json
 trace/trace_*.json
 *.db
 old*.py
+
+#scribble
+scribble.py

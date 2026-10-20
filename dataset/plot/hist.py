@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from rdh.graph.resource_graph import ResourceGraph
+from rdh.graph.resource_graph_type import ResourceGraph
 
 def plot_providers(graph: ResourceGraph):
     provider_counts = np.bincount(np.bincount(graph["src"], minlength=graph["node_count"]))

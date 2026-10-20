@@ -2,7 +2,7 @@ import time
 import duckdb
 from pathlib import Path
 
-from rdh.graph.resource_graph import ResourceGraph
+from rdh.graph.resource_graph_type import ResourceGraph
 from rdh.graph.compress import compress_graph
 from dataset.util.environment import get_environ
 from dataset.util.trace import trace
