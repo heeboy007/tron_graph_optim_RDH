@@ -1,11 +1,13 @@
 import numpy as np
 
-from rdh.prob_model.cdf import build_cdf_r
+from rdh.prob_model.cdf import build_cdf_r, sample_from_cdf_r
 from rdh.pipeline.split import split_dataset
 from rdh.pipeline.monte_carlo_multicore import monte_carlo_p_value_multicore
 from dataset.duckdb_parse import get_duckdb_resource_graph
 from dataset.util.environment import get_environ
 from dataset.util.trace import trace, print_stats
+from dataset.plot.analysis import provider_mean_variance_closed_form_check
+from dataset.util.checkpoint import save_as_json
 
 if __name__ == "__main__":
     environ = get_environ()
@@ -13,16 +15,16 @@ if __name__ == "__main__":
     graph = get_duckdb_resource_graph(start, end)
 
     # this cdf must be calculated with entire dataset
-    recipient_count = np.bincount(graph["dst"], minlength=graph["node_count"])
+    g_recipient_count = np.bincount(graph["dst"], minlength=graph["node_count"])
 
     # split dataset for suited pipleines
     split = split_dataset(graph)
+    result = provider_mean_variance_closed_form_check(split["analytic"], g_recipient_count)
+    print(result)
+    save_as_json("mean_variance_cf_check", result)
+    
 
-    monte_carlo_p_value_multicore = trace(monte_carlo_p_value_multicore)
-    p_values = monte_carlo_p_value_multicore(split["mc"], recipient_count, environ["tmp_path"])
-    np.save(environ["tmp_path"] / "p_value.npy", p_values)
-    print(p_values[p_values < 1.0])
-    #print_stats()
+    
 
     
     
