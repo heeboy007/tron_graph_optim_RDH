@@ -23,6 +23,7 @@ _deps
 CMakeUserPresets.json
 
 #dataset files
+tmp/
 trace/trace_*.json
 *.db
 old*.py

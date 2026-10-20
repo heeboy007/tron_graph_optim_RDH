@@ -1,13 +1,27 @@
 import numpy as np
-from ..graph.resource_graph_type import ResourceGraph
+from ..graph.resource_graph_type import SimpleGraph
 
-def observed_hhi(graph: ResourceGraph) -> np.ndarray:
+def graph_hhi(graph: SimpleGraph) -> np.ndarray:
     return hhi(graph["src"], graph["dst"], graph["node_count"])
 
-def hhi(provider: np.ndarray, recipient: np.ndarray, node_count: int, assertion: bool = False):
-    # 0. check if recipients are correct, or just start
-    if assertion:
-        assert provider.shape == recipient.shape
+def graph_ss(graph: SimpleGraph) -> np.ndarray:
+    return ss(graph["src"], graph["dst"], graph["node_count"])
+
+def ss(provider: np.ndarray, recipient: np.ndarray, node_count: int) -> np.ndarray:
+    # 0. check if has same shape(it should...)
+    assert provider.shape == recipient.shape
+
+    # 1: get unique pairs
+    key = provider.astype(np.int64) * node_count + recipient.astype(np.int64)
+    unique_keys, unique_counts = np.unique(key, return_counts=True, sorted=False)
+    unique_keys_provider_map = unique_keys // node_count
+
+    # 2: calculate ss
+    return np.bincount(unique_keys_provider_map, weights=unique_counts ** 2, minlength=node_count)
+
+def hhi(provider: np.ndarray, recipient: np.ndarray, node_count: int, assertion: bool = False) -> np.ndarray:
+    # 0. check if has same shape(it should...)
+    assert provider.shape == recipient.shape
 
     # 1: get unique pairs
     key = provider.astype(np.int64) * node_count + recipient.astype(np.int64)
