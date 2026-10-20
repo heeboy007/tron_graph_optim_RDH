@@ -17,11 +17,12 @@ if __name__ == "__main__":
 
     # split dataset for suited pipleines
     split = split_dataset(graph)
-    
+
     monte_carlo_p_value_multicore = trace(monte_carlo_p_value_multicore)
     p_values = monte_carlo_p_value_multicore(split["mc"], cdf_r, environ["tmp_path"])
-    print(p_values)
-    print_stats()
+    np.save(environ["tmp_path"] / "p_value.npy", p_values)
+    print(p_values[p_values < 1.0])
+    #print_stats()
 
     
     

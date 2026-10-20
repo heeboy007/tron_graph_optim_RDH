@@ -5,7 +5,7 @@ from ..graph.resource_graph_type import SimpleGraph
 
 def rdh_strong_edges(graph: SimpleGraph) -> SimpleGraph:
     key = graph["src"].astype(np.int64) * graph['node_count'] + graph["dst"].astype(np.int64)
-    unique_keys = np.unique(key, sorted=False)
+    unique_keys = np.unique(key)
 
     #re-extract 
     unique_keys_provider_map = unique_keys // graph['node_count']
@@ -17,6 +17,7 @@ def rdh_strong_edges(graph: SimpleGraph) -> SimpleGraph:
 
     return {
         'src': unique_keys_provider_map[is_single][::-1],
-        'dst': unique_keys_recipient_map[is_single][::-1]
+        'dst': unique_keys_recipient_map[is_single][::-1],
+        'node_count': graph['node_count']
     }
     

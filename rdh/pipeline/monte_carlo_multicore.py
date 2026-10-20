@@ -1,4 +1,3 @@
-import time
 import numpy as np
 from pathlib import Path
 from multiprocessing import get_context, Pool
@@ -35,7 +34,7 @@ def monte_carlo_p_value_multicore(
         graph: SimpleGraph, 
         cdf_r: np.ndarray, 
         base_path: Path, 
-        n_monte_carlo = 2000, workers = 8):
+        n_monte_carlo = 8000, workers = 8):
     assert n_monte_carlo % workers == 0
 
     observed_ss_mc = graph_ss(graph)
@@ -50,7 +49,6 @@ def monte_carlo_p_value_multicore(
     )
     keys = ("provider", "observed_ss", "cdf_r")
     kwargs = {
-        "edges_count": edges_count,
         "node_count": graph["node_count"]
     }
     

@@ -5,7 +5,7 @@ from ..prob_model.stats import graph_ss, ss
 from ..graph.resource_graph_type import SimpleGraph
 
 # single-core
-def monte_carlo_p_value(graph: SimpleGraph, cdf_r: np.ndarray, n_monte_carlo = 20000):
+def monte_carlo_p_value(graph: SimpleGraph, cdf_r: np.ndarray, n_monte_carlo = 8000):
     observed_ss_mc = graph_ss(graph)
     
     exceed = np.zeros((graph["node_count"], ), dtype=np.int32)
