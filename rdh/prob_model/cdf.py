@@ -4,8 +4,8 @@ from ..graph.resource_graph_type import SimpleGraph
 
 def build_cdf_r(graph: SimpleGraph) -> np.ndarray:
     recipient_count = np.bincount(graph["dst"], minlength=graph["node_count"])
-    recipient_sum = recipient_count.sum().astype(np.float64)
-    return np.cumsum(recipient_count.astype(np.float64) / recipient_sum)
+    raw_p_r = np.cumsum(recipient_count).astype(np.float64)
+    return (raw_p_r / raw_p_r[-1])
 
 def sample_from_cdf_r(src: np.ndarray, cdf: np.ndarray, size, rng):
     null_sample = np.searchsorted(cdf, rng.uniform(size=size), side='right')
