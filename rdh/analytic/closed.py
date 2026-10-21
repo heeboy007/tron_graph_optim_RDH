@@ -1,6 +1,6 @@
 import numpy as np
 
-def closed_form_mean_var(curr_recipient_count: np.ndarray, provider, l_edge_count) -> tuple[int, np.float64, np.float64]:
+def closed_ss_mean_var(curr_recipient_count: np.ndarray, provider, l_edge_count) -> tuple[int, np.float64, np.float64]:
     # 샘플러가 r != src로 재추출하는 분포와 일치 시켜야함.
     p = curr_recipient_count.astype(np.float64)
     p[provider] = 0.0          
