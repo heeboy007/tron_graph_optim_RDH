@@ -3,10 +3,10 @@ import numpy as np
 from rdh.graph.resource_graph_type import SimpleGraph
 from rdh.pipeline.split import split_dataset_range
 from rdh.prob_model.cdf import build_cdf_r, sample_from_cdf_r
+from rdh.analytic.closed import closed_form_mean_var
 from dataset.util.checkpoint import save_as_json, save_as_npy
 
 def provider_mean_variance_closed_form_check(graph: SimpleGraph, g_recipient_count: np.ndarray, base_seed: int = 42):
-    # is sorted
     analytic_providers = np.unique(graph["src"], sorted=True)
     provider_anlysis = {}
     for provider in analytic_providers:
@@ -17,16 +17,7 @@ def provider_mean_variance_closed_form_check(graph: SimpleGraph, g_recipient_cou
         curr_recipient_count = g_recipient_count - l_recipient_count
         cdf_l = build_cdf_r(curr_recipient_count)
 
-        # 샘플러가 r != src로 재추출하는 분포와 일치 시켜야함.
-        p = curr_recipient_count.astype(np.float64)
-        p[provider] = 0.0          
-        p /= p.sum()
-
-        n = l_recipients.shape[0]
-        h = (p ** 2).sum()
-        t = (p ** 3).sum()
-        closed_mean = n + n * (n - 1) * h
-        closed_var = 2 * n * (n - 1) * h * (1 - h) + 4 * n * (n - 1) * (n - 2) * (t - h * h)
+        n, closed_mean, closed_var = closed_form_mean_var(curr_recipient_count, provider, l_recipients.shape[0])
 
         n_sim = 2000
         sample_l = sample_from_cdf_r(np.full(l_recipients.shape, provider), cdf_l, (n_sim, l_recipients.shape[0]), rng)
@@ -54,18 +45,23 @@ def provider_mean_variance_closed_form_check(graph: SimpleGraph, g_recipient_cou
         }
     return provider_anlysis
 
-def distribution_check(global_graph: SimpleGraph, g_recipient_count: np.ndarray, base_seed: int = 42):
-    split = split_dataset_range(global_graph, split_range=[100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000])
+def distribution_check(
+        global_graph: SimpleGraph, 
+        g_recipient_count: np.ndarray, 
+        split_range: tuple[int] = (100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000), 
+        base_seed: int = 42
+    ):
+    split = split_dataset_range(global_graph, split_range=split_range)
     base_seed = 42
     provider_anlysis = {}
-    for s, graph in split.items():
-        print(f"split : {s} src / dst : {graph['src'].shape}")
+    for split_idx, graph in split.items():
+        print(f"split : {split_idx} src / dst : {graph['src'].shape}")
         samples = 3
 
         #skip 0~100
-        if s <= 0: continue
+        if split_idx <= 0: continue
 
-        pre_rng = np.random.default_rng([base_seed, s])
+        pre_rng = np.random.default_rng([base_seed, split_idx])
 
         providers = np.unique(graph["src"], sorted=True)
         sample_prodviders = providers[pre_rng.choice(providers.shape[0], min(samples, providers.shape[0]), replace=False)]
@@ -78,24 +74,29 @@ def distribution_check(global_graph: SimpleGraph, g_recipient_count: np.ndarray,
             curr_recipient_count = g_recipient_count - l_recipient_count
             cdf_l = build_cdf_r(curr_recipient_count)
 
-            p = curr_recipient_count.astype(np.float64)
-            p[provider] = 0.0          
-            p /= p.sum()
-    
-            n = l_recipients.shape[0]
-            h = (p ** 2).sum()
-            t = (p ** 3).sum()
-            closed_mean = n + n * (n - 1) * h
-            closed_var = 2 * n * (n - 1) * h * (1 - h) + 4 * n * (n - 1) * (n - 2) * (t - h * h)
+            n, closed_mean, closed_var = closed_form_mean_var(curr_recipient_count, provider, l_recipients.shape[0])
 
-            n_sim = 8000
-            sample_l = sample_from_cdf_r(np.full(l_recipients.shape, provider), cdf_l, (n_sim, l_recipients.shape[0]), pro_rng)
-            sample_sss = np.apply_along_axis(lambda a: ((np.unique(a, return_counts=True)[1]) ** 2).sum(), axis=1, arr=sample_l)
-            save_as_npy(f"sample_sss_{s}_{provider}", sample_sss)
+            n_sim, sim_chunk = 8000, 200
+            blocks = []
+            for _ in range(0, n_sim, sim_chunk):
+                s = sample_from_cdf_r(np.full(n, provider), cdf_l, (sim_chunk, n), pro_rng)
+                blocks.append(np.apply_along_axis(lambda a: (np.unique(a, return_counts=True)[1].astype(np.int64)**2).sum(), 1, s))
+            sample_sss = np.concatenate(blocks)
+            save_as_npy(f"sample_sss_{split_idx}_{provider}", sample_sss)
             provider_anlysis[provider.item()] = {
                 'provider': provider.item(),
                 'n': n,
                 'c_mean': closed_mean.item(),
                 'c_var': closed_var.item(),
+                'split_idx': split_idx
             }
     save_as_json('distribution_cl_mv', provider_anlysis)
+
+
+def bh_fdr_credibility_check(
+        global_graph: SimpleGraph, 
+        g_recipient_count: np.ndarray, 
+        split_range: tuple[int] = (100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000), 
+        base_seed: int = 42
+    ):
+    pass
