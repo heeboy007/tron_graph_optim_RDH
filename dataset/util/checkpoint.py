@@ -9,3 +9,11 @@ def save_as_json(name: str, stats: dict, vary_by_time = False):
     path = environ['tmp_path'] / f"{name}{timestamp}.json"
     with open(path, 'w', encoding="utf-8") as f:
         json.dump(stats, f, ensure_ascii=False, indent=4)
+    return path
+
+def load_from_json(name: str):
+    environ = get_environ()
+    path = environ['tmp_path'] / f"{name}.json"
+    with open(path, 'r', encoding="utf-8") as f:
+        stats = json.load(f)
+    return stats
