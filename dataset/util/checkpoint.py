@@ -1,4 +1,5 @@
 import json
+import numpy as np
 from datetime import datetime as dt
 
 from dataset.util.environment import get_environ
@@ -17,3 +18,10 @@ def load_from_json(name: str):
     with open(path, 'r', encoding="utf-8") as f:
         stats = json.load(f)
     return stats
+
+def save_as_npy(name: str, na: np.ndarray, vary_by_time = False):
+    environ = get_environ()
+    timestamp = f"_{dt.now():%Y%m%d_%H%M%S}" if vary_by_time else ""
+    path = environ['tmp_path'] / f"{name}{timestamp}.npy"
+    np.save(path, na)
+    return path

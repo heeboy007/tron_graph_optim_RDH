@@ -1,6 +1,6 @@
 import numpy as np
 
-from ..graph.resource_graph_type import ResourceGraph, SplitGraph
+from ..graph.resource_graph_type import ResourceGraph, SplitGraph, SimpleGraph
 
 def split_dataset(graph: ResourceGraph, simplify_threshold: int = 5, analytic_threshold: int = 20000) -> SplitGraph:
     _, inv, unique_provider_counts = np.unique(graph["src"], return_inverse=True, return_counts=True)
@@ -25,4 +25,21 @@ def split_dataset(graph: ResourceGraph, simplify_threshold: int = 5, analytic_th
             'node_count': graph["node_count"]
         }
     }
+
+def split_dataset_range(graph: ResourceGraph, split_range: tuple[int]) -> dict[int, SimpleGraph]:
+    _, inv, unique_provider_counts = np.unique(graph["src"], return_inverse=True, return_counts=True)
+    range_bool_maps = [(t < unique_provider_counts)[inv] for t in (0, *split_range)]
+    dataset = {}
+    for idx, r_low in enumerate((0, *split_range)):
+        if idx == len(split_range): #last one, should be treated as inf
+            boolean_index = range_bool_maps[idx]
+        else:
+            boolean_index = range_bool_maps[idx] ^ range_bool_maps[idx + 1]
+        
+        dataset[r_low] = {
+            'src': graph["src"][boolean_index],
+            'dst': graph["dst"][boolean_index],
+            'node_count': graph["node_count"]
+        }
+    return dataset
 
