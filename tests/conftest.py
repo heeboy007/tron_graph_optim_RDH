@@ -19,14 +19,14 @@ SIMPLIFY_THRESHOLD, ANALYTIC_THRESHOLD = 5, 20000
 
 @pytest.fixture(scope="session")
 def full_graph():
-    from dataset.duckdb_parse import get_duckdb_resource_graph
+    from dataset.load.resource_graph import get_duckdb_resource_graph
     return get_duckdb_resource_graph(BLOCK_START, BLOCK_END)
 
 
 @pytest.fixture(scope="session")
 def g_recipient_count(full_graph):
     # main.py와 같이 recipient count는 전체 데이터셋으로 만든다
-    return np.bincount(full_graph["dst"], minlength=full_graph["node_count"])
+    return np.bincount(full_graph["dst"], minlength=full_graph["is_single"])
 
 
 @pytest.fixture(scope="session")

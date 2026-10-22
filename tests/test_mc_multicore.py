@@ -34,7 +34,7 @@ def multi_core_p(request, mc_graph, g_recipient_count, tmp_path_factory):
 def test_mc_split_only_contains_mc_providers(mc_graph, full_graph):
     assert mc_graph["src"].shape == mc_graph["dst"].shape
     assert mc_graph["src"].size > 0
-    assert mc_graph["node_count"] == full_graph["node_count"]
+    assert mc_graph["g_node_count"] == full_graph["g_node_count"]
     _, counts = np.unique(mc_graph["src"], return_counts=True)
     assert (counts > SIMPLIFY_THRESHOLD).all()
     assert (counts <= ANALYTIC_THRESHOLD).all()
@@ -42,13 +42,13 @@ def test_mc_split_only_contains_mc_providers(mc_graph, full_graph):
 
 
 def test_recipient_count_matches_full_graph(g_recipient_count, full_graph):
-    assert g_recipient_count.shape == (full_graph["node_count"],)
+    assert g_recipient_count.shape == (full_graph["g_node_count"],)
     assert g_recipient_count.sum() == full_graph["dst"].size
     assert (g_recipient_count >= 0).all()
 
 
 def test_cdf_r_is_valid(cdf_r, full_graph):
-    assert cdf_r.shape == (full_graph["node_count"],)
+    assert cdf_r.shape == (full_graph["g_node_count"],)
     assert (np.diff(cdf_r) >= 0).all(), "cdf가 단조증가가 아니면 searchsorted 결과가 정의되지 않는다"
     assert cdf_r[0] >= 0
     assert cdf_r[-1] == 1.0
@@ -67,7 +67,7 @@ def test_sampler_range_and_no_self_loop(mc_graph, cdf_r):
     src = mc_graph["src"]
     sample = sample_from_cdf_r(src=src, cdf=cdf_r, size=(src.size,), rng=rng)
     assert sample.min() >= 0
-    assert sample.max() < mc_graph["node_count"], "범위 밖 index는 ss에서 다른 provider로 조용히 섞인다"
+    assert sample.max() < mc_graph["g_node_count"], "범위 밖 index는 ss에서 다른 provider로 조용히 섞인다"
     assert (sample != src).all()
 
 
@@ -88,7 +88,7 @@ def test_multicore_equals_single_core(multi_core_p, single_core_p):
 
 def test_p_value_range_and_grid(multi_core_p, mc_graph):
     _, _, p = multi_core_p
-    assert p.shape == (mc_graph["node_count"],)
+    assert p.shape == (mc_graph["g_node_count"],)
     assert np.isfinite(p).all()
     assert (p >= 1 / (N_MC + 1)).all() and (p <= 1).all()
     k = p * (N_MC + 1)
@@ -106,16 +106,16 @@ def test_mc_providers_are_actually_tested(multi_core_p, mc_graph, mc_providers):
 def test_non_mc_nodes_are_p_one(multi_core_p, mc_graph, mc_providers):
     """현재 동작 고정: mc provider가 아닌 노드는 p=1 (검정 대상 아님과 구분 불가)."""
     _, _, p = multi_core_p
-    non_mc = np.ones(mc_graph["node_count"], dtype=bool)
+    non_mc = np.ones(mc_graph["g_node_count"], dtype=bool)
     non_mc[mc_providers] = False
     assert (p[non_mc] == 1.0).all()
 
 
 def test_worker_files_written_to_given_base_path(multi_core_p, mc_graph, g_recipient_count, cdf_r):
     _, base_path, _ = multi_core_p
-    np.testing.assert_array_equal(np.load(base_path / "provider.npy"), mc_graph["src"])
-    np.testing.assert_array_equal(np.load(base_path / "g_recipient_count.npy"), g_recipient_count)
+    np.testing.assert_array_equal(np.load(base_path / "_multicore_provider.npy"), mc_graph["src"])
+    np.testing.assert_array_equal(np.load(base_path / "_multicore_g_recipient_count.npy"), g_recipient_count)
     # 함수 내부에서 만든 cdf가 g_recipient_count로 만든 cdf와 같아야 한다
-    np.testing.assert_array_equal(np.load(base_path / "cdf_r.npy"), cdf_r)
-    np.testing.assert_array_equal(np.load(base_path / "cdf_r.npy"), build_cdf_r(g_recipient_count))
-    np.testing.assert_array_equal(np.load(base_path / "observed_ss.npy"), graph_ss(mc_graph))
+    np.testing.assert_array_equal(np.load(base_path / "_multicore_cdf_r.npy"), cdf_r)
+    np.testing.assert_array_equal(np.load(base_path / "_multicore_cdf_r.npy"), build_cdf_r(g_recipient_count))
+    np.testing.assert_array_equal(np.load(base_path / "_multicore_observed_ss.npy"), graph_ss(mc_graph))

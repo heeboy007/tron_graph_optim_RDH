@@ -12,17 +12,20 @@ def split_dataset(graph: ResourceGraph, simplify_threshold: int = 5, analytic_th
         'strong': { 
             'src': graph["src"][statistically_unreliable],
             'dst': graph["dst"][statistically_unreliable],
-            'node_count': graph["node_count"]
+            'g_node_count': graph["g_node_count"],
+            'l_edge_count': statistically_unreliable.sum()
         }, 
         'mc': { 
             'src': graph["src"][monte_carlo_analysis],
             'dst': graph["dst"][monte_carlo_analysis],
-            'node_count': graph["node_count"]
+            'g_node_count': graph["g_node_count"],
+            'l_edge_count': monte_carlo_analysis.sum()
         },
         'analytic': {
             'src': graph["src"][analytic_analysis],
             'dst': graph["dst"][analytic_analysis],
-            'node_count': graph["node_count"]
+            'g_node_count': graph["g_node_count"],
+            'l_edge_count': analytic_analysis.sum()
         }
     }
 
@@ -39,7 +42,8 @@ def split_dataset_range(graph: ResourceGraph, split_range: tuple[int]) -> dict[i
         dataset[r_low] = {
             'src': graph["src"][boolean_index],
             'dst': graph["dst"][boolean_index],
-            'node_count': graph["node_count"]
+            'g_node_count': graph["g_node_count"],
+            'l_edge_count': boolean_index.sum()
         }
     return dataset
 
