@@ -1,7 +1,7 @@
 import time
 
 from rdh.graph.resource_graph_type import ResourceGraph
-from rdh.graph.transform import compress_graph
+from rdh.graph.transform import compress_graph, pair_tx_unique
 from dataset.util.environment import get_environ
 from dataset.load.connection import get_duckdb_connection
 from dataset.load.convert import convert_dataframe
@@ -42,6 +42,7 @@ def get_duckdb_resource_graph(start, end) -> tuple[ResourceGraph, ResourceGraph]
             "l_edge_count": d_graph_l_edge_count,
             "decompress_map": decompress_map
         }
+        pair_tx_unique(d_graph)
 
         u_graph = {
             "src": r_src[~is_d],
@@ -50,9 +51,11 @@ def get_duckdb_resource_graph(start, end) -> tuple[ResourceGraph, ResourceGraph]
             "g_node_count": g_node_count,
             "l_edge_count": c_src.shape[0] - d_graph_l_edge_count
         }
+        pair_tx_unique(u_graph)
 
         t2 = time.perf_counter()
-        print(f"[duckdb] query time : {t1 - t0}, conversion time: {t2 - t1}, records : {len(df)}")
+        print(f"[duckdb] query time : {t1 - t0}, conversion time: {t2 - t1}, " +\
+              f"ec : D/{d_graph['l_edge_count']} U/{u_graph['l_edge_count']} gn: {g_node_count}")
 
         # check if data doens't contain any loops
         assert (c_src == c_dst).sum() == 0

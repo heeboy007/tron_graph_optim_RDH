@@ -10,8 +10,11 @@ class SimpleGraph(TypedDict, total=False):
 class ResourceGraph(SimpleGraph):
     bn: np.ndarray
     decompress_map: np.ndarray
-    unique_pairs: np.ndarray
-    unique_pair_inv: np.ndarray
+    uk: np.ndarray
+    uk_inv: np.ndarray
+    uk_cnt: np.ndarray
+    uk_src: np.ndarray
+    uk_dst: np.ndarray
 
 class SplitGraph(TypedDict):
     strong: SimpleGraph

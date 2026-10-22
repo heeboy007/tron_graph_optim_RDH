@@ -19,7 +19,12 @@ def decompress_graph(graph: ResourceGraph) -> ResourceGraph:
 
 def pair_tx_unique(graph: ResourceGraph):
     key = graph["src"].astype(np.int64) * graph['g_node_count'] + graph["dst"].astype(np.int64)
-    unique_keys = np.unique(key)
+    uk, uk_inv, uk_cnt = np.unique(key, return_inverse=True, return_counts=True)
+    uk_src = uk // graph['g_node_count']
+    uk_dst = uk % graph['g_node_count']
 
-    uk_src = unique_keys // graph['g_node_count']
-    uk_dst = unique_keys % graph['g_node_count']
+    graph["uk"] = uk
+    graph["uk_inv"] = uk_inv
+    graph["uk_src"] = uk_src.astype(np.int32)
+    graph["uk_dst"] = uk_dst.astype(np.int32)
+    graph["uk_cnt"] = uk_cnt.astype(np.int32)

@@ -34,10 +34,10 @@ def plot_coverage_pairs(graph: ResourceGraph, start, end):
     a_bin = np.linspace(0, 175, 30)
     n_bin = np.linspace(0, 1000, 30)
 
-    h = axs.hist2d(coverage["active"], coverage["n_pair"], bins=[a_bin, n_bin], norm=LogNorm(), cmap="viridis")
+    h = axs.hist2d(coverage["active"], graph["uk_cnt"], bins=[a_bin, n_bin], norm=LogNorm(), cmap="viridis")
     fig.colorbar(h[3], ax=axs, label="pairs")
-    axs.set_xlabel("active"); 
-    axs.set_ylabel("n_pair"); 
+    axs.set_xlabel("active(by blocks coverage)"); 
+    axs.set_ylabel("n_pair(unique pair counts)"); 
     axs.set_title(f"active, n_pair 2d hist")
 
     fig.tight_layout()
