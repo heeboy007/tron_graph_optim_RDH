@@ -43,6 +43,28 @@ def plot_coverage_pairs(graph: ResourceGraph, start, end):
     fig.tight_layout()
     plt.show()
 
+def plot_duration_hist(graph: ResourceGraph):
+    # dur: 짝지어진 위임의 블록 차이, 짝이 없는(open) 위임은 NaN
+    dur = graph["dur"]
+    matched = dur[~np.isnan(dur)]
+    n_open, n_zero = np.isnan(dur).sum(), (matched == 0).sum()
+
+    fig, axs = plt.subplots(1, 1, figsize=(10, 5))
+    d_bin = np.unique(np.round(np.logspace(0, 5, 400)))  # 1 ~ 100,000블록, 정수 경계
+
+    axs.hist(matched[matched >= 1], bins=d_bin)
+    for blocks, label in ((20, "1m"), (200, "10m"), (1200, "1h"), (28800, "1d")):
+        axs.axvline(blocks, c="k", ls="--", lw=0.8)
+        axs.text(blocks, 1, f" {label}", transform=axs.get_xaxis_transform(), va="top", fontsize=9)
+    axs.set_xscale("log")
+    axs.set_yscale("log")
+    axs.set_xlabel("dur (blocks)")
+    axs.set_ylabel("delegations")
+    axs.set_title(f"delegation duration hist (n={dur.size:,}, dur=0: {n_zero:,}, open: {n_open:,} not shown)")
+
+    fig.tight_layout()
+    plt.show()
+
 def plot_concentration_s(s_in: np.ndarray, s_out: np.ndarray):
     fig, axs = plt.subplots(1, 1, figsize=(6, 5))
     sbin = np.linspace(0, 1, 50)

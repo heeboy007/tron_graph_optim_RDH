@@ -8,7 +8,7 @@ from rdh.models.analytic.closed import closed_ss_mean_var
 from dataset.load.resource_graph import get_duckdb_delegate_graph_full
 from dataset.analysis.checks import z_credibility_check
 from dataset.analysis.check_plots import z_credibility_plot
-from dataset.analysis.data_plots import plot_coverage_pairs, plot_concentration_s
+from dataset.analysis.data_plots import plot_coverage_pairs, plot_concentration_s, plot_duration_hist
 from dataset.util.environment import get_environ
 from dataset.util.trace import trace, print_stats
 from dataset.util.checkpoint import load_from_json, save_as_json, load_from_npy, save_as_npy
@@ -23,5 +23,6 @@ if __name__ == "__main__":
 
     start, end = 80_000_000, 80_200_000
     d_graph = get_duckdb_delegate_graph_full(start, end)
+    plot_duration_hist(d_graph)
 
     
