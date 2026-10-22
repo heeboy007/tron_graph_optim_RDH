@@ -2,10 +2,10 @@ import numpy as np
 from pathlib import Path
 from multiprocessing import get_context
 
-from ..graph.resource_graph_type import SimpleGraph
+from ...graph.resource_graph_type import SimpleGraph
 from .monte_carlo import monte_carlo_acc_sample
-from ..models.stochastic.stats import graph_ss
-from ..models.stochastic.cdf import build_cdf_r
+from ...models.stochastic.stats import graph_ss
+from ...models.stochastic.cdf import build_cdf_r
 
 _MATERIAL = None
 

@@ -9,7 +9,10 @@ class SimpleGraph(TypedDict, total=False):
 
 class ResourceGraph(SimpleGraph):
     bn: np.ndarray
+    amt: np.ndarray
     decompress_map: np.ndarray
+    dur: np.array
+    concurrent: np.array
     uk: np.ndarray
     uk_inv: np.ndarray
     uk_cnt: np.ndarray

@@ -1,6 +1,6 @@
 import numpy as np
 
-from ..graph.resource_graph_type import ResourceGraph, SplitGraph, SimpleGraph
+from ...graph.resource_graph_type import ResourceGraph, SplitGraph, SimpleGraph
 
 def split_dataset(graph: ResourceGraph, simplify_threshold: int = 5, analytic_threshold: int = 20000) -> SplitGraph:
     _, inv, unique_provider_counts = np.unique(graph["src"], return_inverse=True, return_counts=True)

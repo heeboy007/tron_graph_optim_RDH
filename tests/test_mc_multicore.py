@@ -9,8 +9,8 @@ import pytest
 from conftest import SIMPLIFY_THRESHOLD, ANALYTIC_THRESHOLD
 from rdh.models.stochastic.cdf import build_cdf_r, sample_from_cdf_r
 from rdh.models.stochastic.stats import graph_ss
-from rdh.pipeline.monte_carlo import monte_carlo_p_value
-from rdh.pipeline.monte_carlo_multicore import monte_carlo_p_value_multicore
+from rdh.pipeline.stochastic.monte_carlo import monte_carlo_p_value
+from rdh.pipeline.stochastic.monte_carlo_multicore import monte_carlo_p_value_multicore
 
 N_MC = 16
 pytestmark = pytest.mark.timeout(900)

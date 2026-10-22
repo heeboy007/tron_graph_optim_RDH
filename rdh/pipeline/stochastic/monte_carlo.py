@@ -1,8 +1,8 @@
 import numpy as np
 
-from ..models.stochastic.cdf import build_cdf_r, sample_from_cdf_r
-from ..models.stochastic.stats import graph_ss, ss
-from ..graph.resource_graph_type import SimpleGraph
+from ...models.stochastic.cdf import build_cdf_r, sample_from_cdf_r
+from ...models.stochastic.stats import graph_ss, ss
+from ...graph.resource_graph_type import SimpleGraph
 
 # single-core
 def monte_carlo_p_value(graph: SimpleGraph, g_recipient_count: np.ndarray, n_monte_carlo = 8000):
