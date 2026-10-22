@@ -14,7 +14,7 @@ def provider_mean_variance_closed_form_check(graph: SimpleGraph, g_recipient_cou
         rng = np.random.default_rng([base_seed, provider])
         # 'l' represents 'local'
         l_recipients = graph["dst"][graph["src"] == provider]
-        l_recipient_count = np.bincount(l_recipients, minlength=graph["node_count"])
+        l_recipient_count = np.bincount(l_recipients, minlength=graph["g_node_count"])
         curr_recipient_count = g_recipient_count - l_recipient_count
         cdf_l = build_cdf_r(curr_recipient_count)
 
@@ -51,8 +51,8 @@ def distribution_check(
         split_range: tuple[int] = (100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000), 
         base_seed: int = 42
     ):
-    g_recipient_count = np.bincount(global_graph["dst"], minlength=global_graph["node_count"])
-    
+    g_recipient_count = np.bincount(global_graph["dst"], minlength=global_graph["g_node_count"])
+
     split = split_dataset_range(global_graph, split_range=split_range)
     base_seed = 42
     provider_anlysis = {}
@@ -72,7 +72,7 @@ def distribution_check(
             pro_rng = np.random.default_rng([base_seed, provider])
             # 'l' represents 'local'
             l_recipients = graph["dst"][graph["src"] == provider]
-            l_recipient_count = np.bincount(l_recipients, minlength=graph["node_count"])
+            l_recipient_count = np.bincount(l_recipients, minlength=graph["g_node_count"])
             curr_recipient_count = g_recipient_count - l_recipient_count
             cdf_l = build_cdf_r(curr_recipient_count)
 
@@ -95,7 +95,7 @@ def distribution_check(
     save_as_json('distribution_cl_mv', provider_anlysis)
 
 def z_credibility_check(global_graph: SimpleGraph):
-    g_recipient_count = np.bincount(global_graph["dst"], minlength=global_graph["node_count"])
+    g_recipient_count = np.bincount(global_graph["dst"], minlength=global_graph["g_node_count"])
     
     graph = split_dataset_range(global_graph, split_range=[200, ])[200]
     providers = np.unique(graph["src"], sorted=True)
@@ -106,7 +106,7 @@ def z_credibility_check(global_graph: SimpleGraph):
     for i, provider in enumerate(providers):
         # 'l' represents 'local'
         l_recipients = graph["dst"][graph["src"] == provider]
-        l_recipient_count = np.bincount(l_recipients, minlength=graph["node_count"])
+        l_recipient_count = np.bincount(l_recipients, minlength=graph["g_node_count"])
         curr_recipient_count = g_recipient_count - l_recipient_count
         n, closed_mean, closed_var = closed_ss_mean_var(curr_recipient_count, provider, l_recipients.shape[0])
 

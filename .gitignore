@@ -24,6 +24,7 @@ CMakeUserPresets.json
 
 #dataset files
 tmp/
+dataset/analysis/reports
 trace/trace_*.json
 *.db
 old*.py

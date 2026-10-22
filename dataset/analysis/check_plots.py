@@ -102,3 +102,32 @@ def dist_comparison_plots(records: dict):
     fig.tight_layout()
 
     plt.show()
+
+def z_credibility_plot(n: np.ndarray, z: np.ndarray, lnp: np.ndarray):
+    assert np.isfinite(z).all() and not np.isnan(lnp).any(), (np.isnan(z).sum(), np.isneginf(lnp).sum())
+    log10p = lnp / np.log(10); m = len(z)
+
+    # ---- 임시 BH (로그 영역, 언더플로 없음) ----
+    order = np.argsort(lnp); k = np.arange(1, m + 1)
+    ok = lnp[order] <= np.log(0.05 * k / m)
+    kstar = k[ok].max() if ok.any() else 0
+    print(f"m={m}  k*={kstar}  ({kstar/m:.3%})  p*(log10)={log10p[order][kstar-1] if kstar else None}")
+
+    fig, ax = plt.subplots(2, 2, figsize=(13, 9))
+
+    # 1. z_obs vs n (몸통과 3~6 구간 확인)
+    ax[0,0].scatter(n, z, s=3, alpha=.4); ax[0,0].set_xscale("log"); ax[0,0].set_yscale("symlog", linthresh=10)
+    for y in (0, 3, 6): ax[0,0].axhline(y, c="r" if y else "k", ls="--", lw=.8)
+    ax[0,0].set_xlabel("n"); ax[0,0].set_ylabel("z_obs"); ax[0,0].set_title("z_obs vs n")
+
+    # 2. 문턱별 개수
+    th = np.arange(2, 11); cnt = [(log10p <= -t).sum() for t in th]
+    ax[0,1].bar(th, cnt); ax[0,1].set_yscale("log"); ax[0,1].set_xlabel("-log10 p threshold"); ax[0,1].set_title("p <= provider count where 10^-t")
+
+    # 3. p값 히스토그램 (오른쪽 절반 평탄성)
+    p = np.exp(lnp)
+    ax[1,0].hist(p, bins=50); ax[1,0].set_title("p-value histogram")
+    big = n >= 20000
+    ax[1,1].hist(p[big], bins=50); ax[1,1].set_title(f"p-value (n>=20000, total {big.sum()} datapoints)")
+    fig.tight_layout()
+    plt.show()

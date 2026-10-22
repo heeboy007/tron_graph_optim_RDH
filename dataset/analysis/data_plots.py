@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from rdh.graph.resource_graph_type import ResourceGraph
 
 def plot_providers(graph: ResourceGraph):
-    provider_counts = np.bincount(np.bincount(graph["src"], minlength=graph["node_count"]))
+    provider_counts = np.bincount(np.bincount(graph["src"], minlength=graph["g_node_count"]))
     provider_counts = provider_counts[provider_counts > 0]
     counts, _ = np.histogram(provider_counts, bins=[1, 5, 10, 50, 100, 1000, np.inf])
     labels = ["1~4", "5~9", "10~49", "50~99", "100~999", "1000+"]
