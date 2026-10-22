@@ -1,10 +1,11 @@
 import numpy as np
 from typing import TypedDict
 
-class SimpleGraph(TypedDict):
+class SimpleGraph(TypedDict, total=False):
     src: np.ndarray
     dst: np.ndarray
-    node_count: int
+    g_node_count: int
+    l_edge_count: int
 
 class SplitGraph(TypedDict):
     strong: SimpleGraph
@@ -12,10 +13,5 @@ class SplitGraph(TypedDict):
     analytic: SimpleGraph
 
 class ResourceGraph(SimpleGraph, total=False):
-    src: np.ndarray
-    dst: np.ndarray
-    query_time: float
-    conversion_time: float
-    records: int
+    bn: np.ndarray
     decompress_map: np.ndarray
-    node_count: int
