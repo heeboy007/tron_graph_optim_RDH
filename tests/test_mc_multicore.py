@@ -7,8 +7,8 @@ import numpy as np
 import pytest
 
 from conftest import SIMPLIFY_THRESHOLD, ANALYTIC_THRESHOLD
-from rdh.prob_model.cdf import build_cdf_r, sample_from_cdf_r
-from rdh.prob_model.stats import graph_ss
+from rdh.models.stochastic.cdf import build_cdf_r, sample_from_cdf_r
+from rdh.models.stochastic.stats import graph_ss
 from rdh.pipeline.monte_carlo import monte_carlo_p_value
 from rdh.pipeline.monte_carlo_multicore import monte_carlo_p_value_multicore
 

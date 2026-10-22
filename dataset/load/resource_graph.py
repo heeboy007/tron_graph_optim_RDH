@@ -1,7 +1,7 @@
 import time
 
 from rdh.graph.resource_graph_type import ResourceGraph
-from rdh.graph.compress import compress_graph
+from rdh.graph.transform import compress_graph
 from dataset.util.environment import get_environ
 from dataset.load.connection import get_duckdb_connection
 from dataset.load.convert import convert_dataframe
@@ -21,6 +21,7 @@ def get_duckdb_resource_graph(start, end) -> tuple[ResourceGraph, ResourceGraph]
     WHERE block_number BETWEEN ? AND ? 
         AND success 
         AND (type == 'delegate' OR type == 'undelegate')
+        AND res_type == 'ENERGY'
     ORDER BY from_addr, to_addr, block_number
     """
     try:

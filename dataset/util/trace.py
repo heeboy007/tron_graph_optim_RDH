@@ -20,7 +20,7 @@ def create_trace_deco():
         이런식일 경우 a의 acc_time에서는 b의 실행시간이 제외된다.
     """
     environ = get_environ()
-    json_path = environ["trace_path"] / f"trace_{dt.now():%Y%m%d_%H%M%S}.json"
+    json_path = environ["dump_path"] / 'trace' / f"trace_{dt.now():%Y%m%d_%H%M%S}.json"
     trace_memory = environ["trace_mem"]
     func_stack = []
     stats = defaultdict(lambda: {"calls": 0, "peak": 0, "acc_time": 0.0, "t0": 0.0})

@@ -1,5 +1,5 @@
 import numpy as np
-from ..graph.resource_graph_type import SimpleGraph
+from ...graph.resource_graph_type import SimpleGraph
 
 def graph_hhi(graph: SimpleGraph) -> np.ndarray:
     return hhi(graph["src"], graph["dst"], graph["g_node_count"])

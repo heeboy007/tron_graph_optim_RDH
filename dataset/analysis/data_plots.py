@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.colors import LogNorm
 
+from rdh.models.effect.coverage import effect_coverage
 from rdh.graph.resource_graph_type import ResourceGraph
 
 def plot_providers(graph: ResourceGraph):
@@ -24,3 +26,19 @@ def plot_providers(graph: ResourceGraph):
 
     plt.show()
     return bar
+
+def plot_coverage_pairs(graph: ResourceGraph, start, end):
+    coverage = effect_coverage(graph, start, end)
+    
+    fig, axs = plt.subplots(1, 1, figsize=(13, 5))
+    a_bin = np.linspace(0, 175, 30)
+    n_bin = np.linspace(0, 1000, 30)
+
+    h = axs.hist2d(coverage["active"], coverage["n_pair"], bins=[a_bin, n_bin], norm=LogNorm(), cmap="viridis")
+    fig.colorbar(h[3], ax=axs, label="pairs")
+    axs.set_xlabel("active"); 
+    axs.set_ylabel("n_pair"); 
+    axs.set_title(f"active, n_pair 2d hist")
+
+    fig.tight_layout()
+    plt.show()

@@ -1,9 +1,9 @@
 
 import numpy as np
 
-from ..graph.resource_graph_type import SimpleGraph
+from .resource_graph_type import SimpleGraph
 
-def rdh_strong_edges(graph: SimpleGraph) -> SimpleGraph:
+def detect_single_providers(graph: SimpleGraph) -> SimpleGraph:
     key = graph["src"].astype(np.int64) * graph['g_node_count'] + graph["dst"].astype(np.int64)
     unique_keys = np.unique(key)
 

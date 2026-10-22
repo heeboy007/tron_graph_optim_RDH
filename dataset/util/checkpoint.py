@@ -8,14 +8,14 @@ from dataset.util.environment import get_environ
 def save_as_json(name: str, stats: dict, vary_by_time = False) -> Path:
     environ = get_environ()
     timestamp = f"_{dt.now():%Y%m%d_%H%M%S}" if vary_by_time else ""
-    path = environ['tmp_path'] / f"{name}{timestamp}.json"
+    path = environ['dump_path'] / f"{name}{timestamp}.json"
     with open(path, 'w', encoding="utf-8") as f:
         json.dump(stats, f, ensure_ascii=False, indent=4)
     return path
 
 def load_from_json(name: str) -> np.ndarray:
     environ = get_environ()
-    path = environ['tmp_path'] / f"{name}.json"
+    path = environ['dump_path'] / f"{name}.json"
     with open(path, 'r', encoding="utf-8") as f:
         stats = json.load(f)
     return stats
@@ -23,11 +23,11 @@ def load_from_json(name: str) -> np.ndarray:
 def save_as_npy(name: str, na: np.ndarray, vary_by_time = False) -> Path:
     environ = get_environ()
     timestamp = f"_{dt.now():%Y%m%d_%H%M%S}" if vary_by_time else ""
-    path = environ['tmp_path'] / f"{name}{timestamp}.npy"
+    path = environ['dump_path'] / f"{name}{timestamp}.npy"
     np.save(path, na)
     return path
 
 def load_from_npy(name: str) -> np.ndarray:
     environ = get_environ()
-    path = environ['tmp_path'] / f"{name}.npy"
+    path = environ['dump_path'] / f"{name}.npy"
     return np.load(path, mmap_mode='r')

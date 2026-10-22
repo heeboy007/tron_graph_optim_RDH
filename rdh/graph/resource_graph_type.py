@@ -7,11 +7,13 @@ class SimpleGraph(TypedDict, total=False):
     g_node_count: int
     l_edge_count: int
 
+class ResourceGraph(SimpleGraph):
+    bn: np.ndarray
+    decompress_map: np.ndarray
+    unique_pairs: np.ndarray
+    unique_pair_inv: np.ndarray
+
 class SplitGraph(TypedDict):
     strong: SimpleGraph
     mc: SimpleGraph
     analytic: SimpleGraph
-
-class ResourceGraph(SimpleGraph, total=False):
-    bn: np.ndarray
-    decompress_map: np.ndarray

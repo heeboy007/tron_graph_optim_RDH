@@ -12,27 +12,21 @@ except ImportError:
 
 class RDHEnvrionment(TypedDict):
     db_path: Path
-    trace_path: Path
     trace_mem: bool
-    tmp_path: Path
+    dump_path: Path
 
 def get_environ() -> RDHEnvrionment:
     db_path = os.environ.get("RDH_DUCKDB_DIR")
     if not db_path:
         raise ValueError("RDH_DUCKDB_DIR 환경변수(tron.db 파일 경로)를 설정하세요.")
     
-    tmp_path = os.environ.get("RDH_TMP_DIR")
-    if not tmp_path:
-        raise ValueError("RDH_TMP_DIR 환경변수(tmp for multicore 경로)를 설정하세요.")
-
-    trace_path = os.environ.get("RDH_TRACE_DIR")
-    if not trace_path:
-        raise ValueError("RDH_TRACE_DIR 환경변수(trace 저장 경로)를 설정하세요.")
+    dump_path = os.environ.get("RDH_DUMP_DIR")
+    if not dump_path:
+        raise ValueError("RDH_DUMP_DIR 환경변수(tmp for multicore, datasets etc 경로)를 설정하세요.")
     
     trace_mem = False if IS_PRODUCTION else os.environ.get("RDH_TRACE_MEM") == 'True'
     return { 
         "db_path": Path(db_path),
-        "tmp_path": Path(tmp_path),
-        "trace_path": Path(trace_path),
+        "dump_path": Path(dump_path),
         "trace_mem": trace_mem
     }

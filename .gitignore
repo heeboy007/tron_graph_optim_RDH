@@ -23,11 +23,9 @@ _deps
 CMakeUserPresets.json
 
 #dataset files
-tmp/
+dump/
 dataset/analysis/reports
-trace/trace_*.json
 *.db
-old*.py
 
 #scribble
 scribble.py

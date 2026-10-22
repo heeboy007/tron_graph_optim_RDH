@@ -1,7 +1,7 @@
 import numpy as np
 
-from ..prob_model.cdf import build_cdf_r, sample_from_cdf_r
-from ..prob_model.stats import graph_ss, ss
+from ..models.stochastic.cdf import build_cdf_r, sample_from_cdf_r
+from ..models.stochastic.stats import graph_ss, ss
 from ..graph.resource_graph_type import SimpleGraph
 
 # single-core
