@@ -10,7 +10,12 @@ Developed by ReenAG, will be published in paper soon.
 
 ## Tron resource graph analysis
 
-### gamma distribution is more suitable for null model
+### z and p-value credibility check
+![zc](photos/z_cred.png)
+Very high concentration of p-value near 0 is detected. 
+This usually means null model was not really suitable, so developing effect-size based method for RDH.
+
+#### gamma distribution is more suitable for null model
 ![ng](photos/normal_vs_gamma.png)
 Distibution of $U$
 1. $U = \text{sum of } A_{ij}$ 
@@ -19,5 +24,5 @@ Distibution of $U$
 #### skewness and kurtosis
 ![sk](photos/skew_exkurt.png)
 
-### comparision with normal distribution with different transaction counts
+#### comparision with normal distribution with different transaction counts
 ![df](photos/per_n_dist.png)
