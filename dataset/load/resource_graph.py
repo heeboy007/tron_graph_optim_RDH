@@ -51,10 +51,10 @@ def get_duckdb_resource_graph(start, end) -> tuple[ResourceGraph, ResourceGraph]
             "g_node_count": g_node_count,
             "l_edge_count": c_src.shape[0] - d_graph_l_edge_count
         }
-        pair_tx_unique(u_graph)
+        #pair_tx_unique(u_graph) 
 
         t2 = time.perf_counter()
-        print(f"[duckdb] query time : {t1 - t0}, conversion time: {t2 - t1}, " +\
+        print(f"[duckdb] query time : {t1 - t0}, conversion time: {t2 - t1}, " + \
               f"ec : D/{d_graph['l_edge_count']} U/{u_graph['l_edge_count']} gn: {g_node_count}")
 
         # check if data doens't contain any loops

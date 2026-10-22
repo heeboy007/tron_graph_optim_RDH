@@ -30,7 +30,7 @@ def plot_providers(graph: ResourceGraph):
 def plot_coverage_pairs(graph: ResourceGraph, start, end):
     coverage = effect_coverage(graph, start, end)
     
-    fig, axs = plt.subplots(1, 1, figsize=(13, 5))
+    fig, axs = plt.subplots(1, 1, figsize=(6, 5))
     a_bin = np.linspace(0, 175, 30)
     n_bin = np.linspace(0, 1000, 30)
 
@@ -39,6 +39,19 @@ def plot_coverage_pairs(graph: ResourceGraph, start, end):
     axs.set_xlabel("active(by blocks coverage)"); 
     axs.set_ylabel("n_pair(unique pair counts)"); 
     axs.set_title(f"active, n_pair 2d hist")
+
+    fig.tight_layout()
+    plt.show()
+
+def plot_concentration_s(s_in: np.ndarray, s_out: np.ndarray):
+    fig, axs = plt.subplots(1, 1, figsize=(6, 5))
+    sbin = np.linspace(0, 1, 50)
+
+    h = axs.hist2d(s_in, s_out, bins=[sbin, sbin], norm=LogNorm(), cmap="viridis")
+    fig.colorbar(h[3], ax=axs, label="pairs")
+    axs.set_xlabel("s_in"); 
+    axs.set_ylabel("s_out"); 
+    axs.set_title(f"s_in, s_out 2d hist")
 
     fig.tight_layout()
     plt.show()
