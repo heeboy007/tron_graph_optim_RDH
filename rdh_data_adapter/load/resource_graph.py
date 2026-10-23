@@ -1,8 +1,11 @@
 import time
 
+import numpy as np
+import pandas as pd
+
 from rdh.graph.resource_graph_type import ResourceGraph
 from rdh.graph.transform import compress_graph, pair_tx_unique, paired_delegate_graph
-from rdh.pipeline.effect.pair_delegate_undelegate import pair_fifo
+from rdh.pipeline.effect.pair_delegate_undelegate import pair_fifo_arrays
 from rdh_data_adapter.util.environment import get_db_path
 from rdh_data_adapter.load.connection import get_duckdb_connection
 
@@ -54,8 +57,12 @@ def get_duckdb_delegate_graph(start, end, db_path=None) -> ResourceGraph:
         con.close()
     return d_graph
 
-def get_duckdb_delegate_graph_full(start, end, db_path=None) -> ResourceGraph:
-    con = get_duckdb_connection(db_path or get_db_path())
+# 짝짓기용 쿼리의 DuckDB memory_limit. 정렬이 이 한도까지 메모리를 쓰고, 넘으면 디스크로 내보낸다.
+# 창 80.0M~80.2M 측정: 1GB 19s / 최대 RSS 4.9GiB, 2GB 14s / 6.3GiB, 4GB 11s / 8.7GiB
+PAIRING_MEMORY_LIMIT = "1GB"
+
+def get_duckdb_delegate_graph_full(start, end, db_path=None, memory_limit: str = PAIRING_MEMORY_LIMIT) -> ResourceGraph:
+    con = get_duckdb_connection(db_path or get_db_path(), memory_limit=memory_limit)
 
     # with warm-up and horizon matching
     # 14 days, converted to seconds divided by 3 seconds per block, so 14 days amount of blocks.
@@ -63,31 +70,51 @@ def get_duckdb_delegate_graph_full(start, end, db_path=None) -> ResourceGraph:
     c_start, c_end = start - c_horizon, end + c_horizon 
 
     #fetch block_number, undelegate graph alongside delegate
+    # 결과를 바꾸지 않고 행을 줄이는 두 조건 (짝짓기는 (src, dst, amt) 묶음마다 독립):
+    # 1. 창 안에 delegate가 하나도 없는 묶음은 뺀다.
+    # 2. 창 이후의 delegate는 뺀다. FIFO이므로 창 안 delegate가 모두 회수되기 전에는 회수되지 않는다.
     sql = """
-    SELECT 
-        from_addr AS src, 
-        to_addr AS dst,
-        amount AS amt,
-        block_number AS bn,
-        CASE WHEN type == 'delegate' THEN 1 ELSE -1 END AS is_d
-    FROM resource_tx
-    WHERE block_number BETWEEN ? AND ? 
-        AND success 
-        AND (type == 'delegate' OR type == 'undelegate')
-        AND res_type == 'ENERGY'
-    ORDER BY from_addr, to_addr, amount, block_number, time, tx_id
+    WITH ev AS (
+        SELECT
+            from_addr AS src,
+            to_addr AS dst,
+            amount AS amt,
+            block_number AS bn,
+            time,
+            tx_id,
+            CASE WHEN type == 'delegate' THEN 1 ELSE -1 END::TINYINT AS is_d
+        FROM resource_tx
+        WHERE block_number BETWEEN $c_start AND $c_end
+            AND success
+            AND (type == 'delegate' OR type == 'undelegate')
+            AND res_type == 'ENERGY'
+    ), win_groups AS (
+        SELECT DISTINCT src, dst, amt FROM ev WHERE is_d = 1 AND bn BETWEEN $start AND $end
+    )
+    SELECT src, dst, amt, bn, is_d
+    FROM ev SEMI JOIN win_groups USING (src, dst, amt)
+    WHERE NOT (is_d = 1 AND bn > $end)
+    ORDER BY src, dst, amt, bn, time, tx_id
     """
     try:
         print(f"[duckdb] fetching D/U graph of {start} ~ {end} (horizon {c_start} ~ {c_end})")
         t0 = time.perf_counter()
         
-        df = con.execute(sql, [c_start, c_end]).df()
+        # .df()는 DuckDB 결과와 pandas 사본이 동시에 생기므로 numpy로 바로 받는다
+        cols = con.execute(sql, {"c_start": c_start, "c_end": c_end, "start": start, "end": end}).fetchnumpy()
+        ev = {c: np.asarray(cols[c]) for c in ("src", "dst", "amt", "bn", "is_d")}
+        del cols
         t1 = time.perf_counter()
 
-        df = pair_fifo(df, start, end)
+        d_idx, u_bn, concurrent = pair_fifo_arrays(**ev, start_bn=start, end_bn=end)
+        bn = ev["bn"][d_idx]
+        dur = np.where(u_bn < 0, np.nan, u_bn - bn)
+        paired = pd.DataFrame({"src": ev["src"][d_idx], "dst": ev["dst"][d_idx], "amt": ev["amt"][d_idx],
+                               "bn": bn, "dur": dur, "concurrent": concurrent})
+        del ev, d_idx, u_bn
         t2 = time.perf_counter()
 
-        graph = paired_delegate_graph(df)
+        graph = paired_delegate_graph(paired)
         src, dst, g_node_count = graph["src"], graph["dst"], graph["g_node_count"]
 
         t3 = time.perf_counter()

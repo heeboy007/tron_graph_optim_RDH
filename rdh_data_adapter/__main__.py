@@ -8,6 +8,7 @@ import json
 
 from rdh import RDHParams, save_as_pq
 from rdh_data_adapter.helper import build_component_map
+from rdh_data_adapter.load.resource_graph import PAIRING_MEMORY_LIMIT
 
 def _mu0(value: str):
     return None if value.lower() == "none" else float(value)
@@ -21,6 +22,7 @@ def main(argv=None):
     cm.add_argument("--end", type=int, required=True)
     cm.add_argument("--out", required=True, help="저장할 폴더 (parquet + meta.json)")
     cm.add_argument("--db-path", default=None, help="tron.db 경로 (없으면 RDH_DUCKDB_DIR)")
+    cm.add_argument("--memory-limit", default=PAIRING_MEMORY_LIMIT, help="DuckDB memory_limit (예: 1GB, 4GB)")
     cm.add_argument("--A", type=int, default=d.A)
     cm.add_argument("--mu0", type=_mu0, default=d.mu0, help="'none'이면 mu 조건을 쓰지 않음")
     cm.add_argument("--tau", type=float, default=d.tau)
@@ -33,7 +35,7 @@ def main(argv=None):
 
     params = RDHParams(A=args.A, mu0=args.mu0, tau=args.tau, bucket=args.bucket,
                        flash_max=args.flash_max, rho=args.rho, k=args.k, min_n=args.min_n)
-    cmap = build_component_map(args.start, args.end, params, db_path=args.db_path)
+    cmap = build_component_map(args.start, args.end, params, db_path=args.db_path, memory_limit=args.memory_limit)
     out = save_as_pq(args.out, cmap)
     print(json.dumps({"out": str(out), **cmap.summary}, ensure_ascii=False))
 
