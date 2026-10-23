@@ -15,6 +15,13 @@ class RDHEnvrionment(TypedDict):
     trace_mem: bool
     dump_path: Path
 
+def get_db_path() -> Path:
+    # DB만 필요할 때: RDH_DUCKDB_DIR만 요구한다
+    db_path = os.environ.get("RDH_DUCKDB_DIR")
+    if not db_path:
+        raise ValueError("RDH_DUCKDB_DIR 환경변수(tron.db 파일 경로)를 설정하세요.")
+    return Path(db_path)
+
 def get_environ() -> RDHEnvrionment:
     db_path = os.environ.get("RDH_DUCKDB_DIR")
     if not db_path:

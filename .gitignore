@@ -24,8 +24,15 @@ CMakeUserPresets.json
 
 #dataset files
 dump/
-dataset/analysis/reports
+rdh_data_adapter/analysis/reports
 *.db
+*.parquet
+*.npy
+*.npz
+
+#packaging
+*.egg-info/
+dist/
 
 #scribble
 scribble.py

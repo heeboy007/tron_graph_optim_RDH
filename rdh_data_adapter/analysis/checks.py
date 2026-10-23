@@ -5,7 +5,7 @@ from rdh.graph.resource_graph_type import SimpleGraph
 from rdh.pipeline.stochastic.split import split_dataset_range
 from rdh.models.stochastic.cdf import build_cdf_r, sample_from_cdf_r
 from rdh.models.analytic.closed import closed_ss_mean_var
-from dataset.util.checkpoint import save_as_json, save_as_npy
+from rdh_data_adapter.util.checkpoint import save_as_json, save_as_npy
 
 def provider_mean_variance_closed_form_check(graph: SimpleGraph, g_recipient_count: np.ndarray, base_seed: int = 42):
     analytic_providers = np.unique(graph["src"], sorted=True)

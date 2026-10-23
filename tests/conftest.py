@@ -4,7 +4,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-# spawn 워커도 부모의 sys.path를 물려받으므로 repo root를 넣어두면 rdh/dataset import가 된다.
+# spawn 워커도 부모의 sys.path를 물려받으므로 repo root를 넣어두면 rdh/rdh_data_adapter import가 된다.
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
@@ -17,17 +17,31 @@ BLOCK_START, BLOCK_END = 80_000_000, 80_200_000
 SIMPLIFY_THRESHOLD, ANALYTIC_THRESHOLD = 5, 20000
 
 
+def require_db():
+    """tron.db를 쓸 수 없으면(extra [db] 미설치, RDH_DUCKDB_DIR 없음, 파일 없음) 그 테스트를 skip한다."""
+    try:
+        import duckdb  # noqa: F401
+        from rdh_data_adapter.util.environment import get_db_path
+        db_path = get_db_path().expanduser()
+    except (ImportError, ValueError) as e:
+        pytest.skip(f"DB 없음: {e}")
+    if not db_path.exists():
+        pytest.skip(f"DB 파일 없음: {db_path}")
+
+
 @pytest.fixture(scope="session")
 def full_graph():
     # 창 안의 ENERGY delegate만 (undelegate 짝짓기 없음)
-    from dataset.load.resource_graph import get_duckdb_delegate_graph
+    require_db()
+    from rdh_data_adapter.load.resource_graph import get_duckdb_delegate_graph
     return get_duckdb_delegate_graph(BLOCK_START, BLOCK_END)
 
 
 @pytest.fixture(scope="session")
 def full_du_graph():
     # warm-up/horizon 포함 delegate-undelegate R1 짝짓기 결과 (dur, concurrent 포함)
-    from dataset.load.resource_graph import get_duckdb_delegate_graph_full
+    require_db()
+    from rdh_data_adapter.load.resource_graph import get_duckdb_delegate_graph_full
     return get_duckdb_delegate_graph_full(BLOCK_START, BLOCK_END)
 
 

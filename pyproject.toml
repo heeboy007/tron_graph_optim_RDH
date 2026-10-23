@@ -1,23 +1,44 @@
 [project]
 name = "tron-graph-optim-rdh"
 version = "0.1.0"
-description = "Add your description here"
+description = "Resource-Delegation Heuristic (RDH): effect-size component map of TRON resource delegations"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "numpy>=2.5.4",
     "pandas>=3.0.6",
+    "pyarrow>=26.0.0",
     "scipy>=1.18.1",
 ]
 
-[dependency-groups]
-demo = [
+[project.optional-dependencies]
+# DuckDB(tron.db)에서 읽는 rdh_data_adapter.helper / CLI
+db = [
     "duckdb>=1.5.6",
-    "jupyter>=1.1.1",
+    "python-dotenv>=1.2.4",
+]
+# repo 안의 분석 스크립트 (패키지에는 포함되지 않음)
+analysis = [
+    "duckdb>=1.5.6",
+    "python-dotenv>=1.2.4",
+    "matplotlib>=3.11.2",
+    "tabulate>=0.10.0",
+]
+
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["rdh*", "rdh_data_adapter*"]
+exclude = ["rdh_data_adapter.analysis*", "tests*"]
+
+[dependency-groups]
+full = [
+    "duckdb>=1.5.6",
     "matplotlib>=3.11.2",
     "pytest>=9.1.1",
     "pytest-timeout>=2.4.0",
     "python-dotenv>=1.2.4",
     "tabulate>=0.10.0",
-    "tqdm>=4.70.1",
 ]

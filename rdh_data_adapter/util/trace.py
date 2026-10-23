@@ -6,7 +6,7 @@ from typing import Callable
 from datetime import datetime as dt
 from functools import wraps
 
-from .environment import get_environ
+from rdh_data_adapter.util.environment import get_environ
 
 def create_trace_deco():
     """

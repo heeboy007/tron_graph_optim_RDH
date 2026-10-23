@@ -1,14 +1,13 @@
 import time
 
 from rdh.graph.resource_graph_type import ResourceGraph
-from rdh.graph.transform import compress_graph, pair_tx_unique
+from rdh.graph.transform import compress_graph, pair_tx_unique, paired_delegate_graph
 from rdh.pipeline.effect.pair_delegate_undelegate import pair_fifo
-from dataset.util.environment import get_environ
-from dataset.load.connection import get_duckdb_connection
+from rdh_data_adapter.util.environment import get_db_path
+from rdh_data_adapter.load.connection import get_duckdb_connection
 
-def get_duckdb_delegate_graph(start, end) -> ResourceGraph:
-    environ = get_environ()
-    con = get_duckdb_connection(environ["db_path"])
+def get_duckdb_delegate_graph(start, end, db_path=None) -> ResourceGraph:
+    con = get_duckdb_connection(db_path or get_db_path())
 
     #fetch block_number, undelegate graph alongside delegate
     sql = """
@@ -55,9 +54,8 @@ def get_duckdb_delegate_graph(start, end) -> ResourceGraph:
         con.close()
     return d_graph
 
-def get_duckdb_delegate_graph_full(start, end) -> ResourceGraph:
-    environ = get_environ()
-    con = get_duckdb_connection(environ["db_path"])
+def get_duckdb_delegate_graph_full(start, end, db_path=None) -> ResourceGraph:
+    con = get_duckdb_connection(db_path or get_db_path())
 
     # with warm-up and horizon matching
     # 14 days, converted to seconds divided by 3 seconds per block, so 14 days amount of blocks.
@@ -89,20 +87,8 @@ def get_duckdb_delegate_graph_full(start, end) -> ResourceGraph:
         df = pair_fifo(df, start, end)
         t2 = time.perf_counter()
 
-        src, dst, decompress_map, g_node_count = compress_graph(df["src"].to_numpy(), df["dst"].to_numpy())
-
-        graph = {
-            "src": src,
-            "dst": dst,
-            "bn": df['bn'].to_numpy(),
-            "amt": df['amt'].to_numpy(),
-            "dur": df['dur'].to_numpy(),
-            "concurrent": df['concurrent'].to_numpy(),
-            "g_node_count": g_node_count,
-            "l_edge_count": src.shape[0],
-            "decompress_map": decompress_map
-        }
-        pair_tx_unique(graph)
+        graph = paired_delegate_graph(df)
+        src, dst, g_node_count = graph["src"], graph["dst"], graph["g_node_count"]
 
         t3 = time.perf_counter()
         print(f"[duckdb] query time : {t1 - t0}, paring time: {t2 - t1}, conversion time: {t3 - t2}" + \

@@ -3,7 +3,7 @@ import numpy as np
 from datetime import datetime as dt
 from pathlib import Path
 
-from dataset.util.environment import get_environ
+from rdh_data_adapter.util.environment import get_environ
 
 def save_as_json(name: str, stats: dict, vary_by_time = False) -> Path:
     environ = get_environ()
@@ -31,3 +31,5 @@ def load_from_npy(name: str) -> np.ndarray:
     environ = get_environ()
     path = environ['dump_path'] / f"{name}.npy"
     return np.load(path, mmap_mode='r')
+# ComponentMap 저장/읽기는 rdh.io에 있다 (기본 설치만으로 다른 repo에서도 읽을 수 있도록)
+from rdh.io import save_as_pq, load_from_pq  # noqa: E402,F401
