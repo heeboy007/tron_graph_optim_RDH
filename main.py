@@ -5,7 +5,7 @@ from rdh.models.effect.concentration import effect_concentration
 from rdh.pipeline.stochastic.split import split_dataset_range
 from rdh.pipeline.stochastic.monte_carlo_multicore import monte_carlo_p_value_multicore
 from rdh.models.analytic.closed import closed_ss_mean_var
-from rdh_data_adapter.load.resource_graph import get_duckdb_delegate_graph_full
+from rdh_data_adapter.load.resource_graph import get_duckdb_delegate_graph
 from rdh_data_adapter.analysis.checks import z_credibility_check
 from rdh_data_adapter.analysis.check_plots import z_credibility_plot
 from rdh_data_adapter.analysis.data_plots import plot_coverage_pairs, plot_concentration_s, plot_duration_hist
@@ -22,7 +22,7 @@ if __name__ == "__main__":
     environ = get_environ()
 
     start, end = 80_000_000, 80_200_000
-    d_graph = get_duckdb_delegate_graph_full(start, end)
-    plot_duration_hist(d_graph)
+    d_graph = get_duckdb_delegate_graph(start, end)
+    plot_coverage_pairs(d_graph, start, end)
 
     
