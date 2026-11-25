@@ -1,0 +1,115 @@
+{
+ "c": 3,
+ "c_pooled": 5,
+ "c_window_median": 3,
+ "table": [
+  {
+   "basis": "pooled",
+   "bins": [
+    {
+     "bin": "1",
+     "keys": 1117,
+     "accounts": 810,
+     "median_weekly_delegations": 18.75
+    },
+    {
+     "bin": "2",
+     "keys": 144,
+     "accounts": 222,
+     "median_weekly_delegations": 39.75
+    },
+    {
+     "bin": "3–4",
+     "keys": 54,
+     "accounts": 155,
+     "median_weekly_delegations": 95.25
+    },
+    {
+     "bin": "5–9",
+     "keys": 32,
+     "accounts": 193,
+     "median_weekly_delegations": 231.0
+    },
+    {
+     "bin": "10–49",
+     "keys": 30,
+     "accounts": 395,
+     "median_weekly_delegations": 70.5
+    },
+    {
+     "bin": "50+",
+     "keys": 15,
+     "accounts": 2530,
+     "median_weekly_delegations": 82.0
+    }
+   ],
+   "adjacent_ratios": [
+    2.12,
+    2.3962264150943398,
+    2.425196850393701,
+    0.3051948051948052,
+    1.1631205673758864
+   ],
+   "largest_ratio_between": [
+    "3–4",
+    "5–9"
+   ],
+   "c": 5
+  },
+  {
+   "basis": "window median",
+   "bins": [
+    {
+     "bin": "1",
+     "keys": 1159,
+     "accounts": 885,
+     "median_weekly_delegations": 23.0
+    },
+    {
+     "bin": "2",
+     "keys": 123,
+     "accounts": 202,
+     "median_weekly_delegations": 46.0
+    },
+    {
+     "bin": "3–4",
+     "keys": 44,
+     "accounts": 157,
+     "median_weekly_delegations": 116.0
+    },
+    {
+     "bin": "5–9",
+     "keys": 28,
+     "accounts": 218,
+     "median_weekly_delegations": 82.25
+    },
+    {
+     "bin": "10–49",
+     "keys": 25,
+     "accounts": 561,
+     "median_weekly_delegations": 108.0
+    },
+    {
+     "bin": "50+",
+     "keys": 11,
+     "accounts": 2436,
+     "median_weekly_delegations": 82.0
+    }
+   ],
+   "adjacent_ratios": [
+    2.0,
+    2.5217391304347827,
+    0.709051724137931,
+    1.3130699088145896,
+    0.7592592592592593
+   ],
+   "largest_ratio_between": [
+    "2",
+    "3–4"
+   ],
+   "c": 3
+  }
+ ],
+ "source": "epoch_chain_causal (v4cc_14 population)",
+ "decided_at": "2026-11-23 20:15:59"
+}
