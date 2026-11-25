@@ -61,7 +61,41 @@ def get_duckdb_delegate_graph(start, end, db_path=None) -> ResourceGraph:
 # 창 80.0M~80.2M 측정: 1GB 19s / 최대 RSS 4.9GiB, 2GB 14s / 6.3GiB, 4GB 11s / 8.7GiB
 PAIRING_MEMORY_LIMIT = "1GB"
 
-def get_duckdb_delegate_graph_full(start, end, db_path=None, memory_limit: str = PAIRING_MEMORY_LIMIT) -> ResourceGraph:
+_WARMUP_SQL = """
+    WITH ev AS (
+        SELECT from_addr AS src, to_addr AS dst, amount AS amt, block_number AS bn, time, tx_id,
+            CASE WHEN type == 'delegate' THEN 1 ELSE -1 END::TINYINT AS is_d
+        FROM resource_tx
+        WHERE block_number BETWEEN $c_start AND $c_end AND success
+            AND (type == 'delegate' OR type == 'undelegate') AND res_type == 'ENERGY'
+    ), wu_groups AS (
+        SELECT DISTINCT src, dst, amt FROM ev WHERE is_d = 1 AND bn BETWEEN $c_start AND $start_m1
+    )
+    SELECT src, dst, amt, bn, is_d
+    FROM ev SEMI JOIN wu_groups USING (src, dst, amt)
+    WHERE NOT (is_d = 1 AND bn >= $start)
+    ORDER BY src, dst, amt, bn, time, tx_id
+"""
+
+
+def _warmup_open_intervals(con, start, c_start, c_end) -> pd.DataFrame:
+    """Delegations that start in the warm-up [c_start, start - 1], are paired by the same R1 FIFO pairing (events [c_start, c_end]) and are
+    still open at the window start (undelegation block >= start). Columns: src, dst, amt, bn, dur, concurrent (original address ids).
+    Pairing is independent per (src, dst, amt) group and delegations after the warm-up cannot change the pairing of earlier delegations
+    (FIFO), so this equals the warm-up part of a pairing run over all groups."""
+    cols = con.execute(_WARMUP_SQL, {"c_start": c_start, "c_end": c_end, "start": start, "start_m1": start - 1}).fetchnumpy()
+    ev = {c: np.asarray(cols[c]) for c in ("src", "dst", "amt", "bn", "is_d")}
+    d_idx, u_bn, concurrent = pair_fifo_arrays(**ev, start_bn=c_start, end_bn=start - 1)
+    keep = u_bn >= start
+    bn = ev["bn"][d_idx][keep]
+    return pd.DataFrame({"src": ev["src"][d_idx][keep], "dst": ev["dst"][d_idx][keep], "amt": ev["amt"][d_idx][keep],
+                         "bn": bn, "dur": (u_bn[keep] - bn).astype(np.float64), "concurrent": concurrent[keep]})
+
+
+def get_duckdb_delegate_graph_full(start, end, db_path=None, memory_limit: str = PAIRING_MEMORY_LIMIT, warmup_open: bool = False) -> ResourceGraph:
+    """Paired ENERGY delegation graph of the window [start, end] (R1 FIFO pairing with 14-day warm-up and horizon).
+    warmup_open=True additionally returns graph["warmup"]: a DataFrame of the paired delegations that started in the warm-up and are still
+    open at the window start (see _warmup_open_intervals). The window graph itself is the same as with warmup_open=False."""
     con = get_duckdb_connection(db_path or get_db_path(), memory_limit=memory_limit)
 
     # with warm-up and horizon matching
@@ -123,6 +157,8 @@ def get_duckdb_delegate_graph_full(start, end, db_path=None, memory_limit: str =
 
         # check if data doens't contain any loops
         assert (src == dst).sum() == 0
+        if warmup_open:
+            graph["warmup"] = _warmup_open_intervals(con, start, c_start, c_end)
     finally:
         con.close()
     return graph

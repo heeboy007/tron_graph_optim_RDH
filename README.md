@@ -29,6 +29,10 @@ u_src, u_dst, weight_sum, n_internal = condense_edges(usdt_src, usdt_dst, cmap, 
 
 `ComponentMap` holds one row per address in a component of size ≥ 2: `addr`, `rep` (smallest address in the component), `comp_id` (0.., ordered by `rep`), `comp_size`.
 
+## Replication and link prediction
+- [docs/replicate.md](docs/replicate.md): F2 / F3 filters and the link-prediction repetition k = 403 from the replica database (`main.py`).
+- [docs/features.md](docs/features.md): link-prediction features (T, D_RDH, D_S).
+
 ## Tron resource graph analysis
 
 ### z and p-value credibility check
