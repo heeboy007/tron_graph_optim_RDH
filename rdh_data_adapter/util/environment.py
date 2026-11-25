@@ -22,6 +22,11 @@ def get_db_path() -> Path:
         raise ValueError("RDH_DUCKDB_DIR 환경변수(tron.db 파일 경로)를 설정하세요.")
     return Path(db_path)
 
+def get_blockscan_path() -> Path:
+    # perm_updates / account_create (block scan): RDH_BLOCKSCAN_DIR, or the main database when it holds them
+    p = os.environ.get("RDH_BLOCKSCAN_DIR")
+    return Path(p) if p else get_db_path()
+
 def get_environ() -> RDHEnvrionment:
     db_path = os.environ.get("RDH_DUCKDB_DIR")
     if not db_path:
