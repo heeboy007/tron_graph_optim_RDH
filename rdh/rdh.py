@@ -7,6 +7,7 @@ F3: merge rule without the pairs of providers in F1 or in F2 (controller-key fil
     pairs = pair_table(graph, start, end)                  # graph: rdh_data_adapter get_duckdb_delegate_graph_full(start, end)
     edges = f3_edges(pairs, f2_of_window)                  # merged (P, r) pairs under F3
     rep = component_rep(edges)                             # (address, representative = smallest address of its component)
+    table = ablation_table(graph, start, end, f2_of_window)  # Table 4 rule rows (all pairs of the window)
 """
 import numpy as np
 import pandas as pd
@@ -66,6 +67,53 @@ def f3_edges(pairs: pd.DataFrame, f2=(), params: RDHParams | None = None, phi0: 
     f2 = np.fromiter(f2, np.int64)
     excl = f1_mask(pairs, params, phi0) | np.isin(P, f2)
     return np.c_[P, pairs["r_addr"].to_numpy(np.int64)][base_mask(pairs, params) & ~excl]
+
+
+def comp_stats(src: np.ndarray, dst: np.ndarray, n: int) -> dict:
+    """Merged pairs (node indices < n) -> pairs, addresses, components (size >= 2), largest component, largest out- / in-degree."""
+    if src.size == 0:
+        return {"merged_pairs": 0, "merged_nodes": 0, "components": 0, "max_comp": 0, "max_out_deg": 0, "max_in_deg": 0}
+    _, lab = connected_components(csr_matrix((np.ones(src.size), (src, dst)), shape=(n, n)), directed=False)
+    nodes = np.unique(np.concatenate([src, dst]))
+    sizes = np.bincount(lab[nodes]); sizes = sizes[sizes > 0]
+    return {"merged_pairs": int(src.size), "merged_nodes": int(nodes.size), "components": int(sizes.size), "max_comp": int(sizes.max()),
+            "max_out_deg": int(np.bincount(src).max()), "max_in_deg": int(np.bincount(dst).max())}
+
+
+def ablation_table(graph: ResourceGraph, start: int, end: int, f2=(), params: RDHParams | None = None, phi0: float = PHI0,
+                   f2_label: str = "F2") -> pd.DataFrame:
+    """Merge-rule ablation of one window over every delegation pair (manuscript Table 4 without the HHI row).
+    Cumulative rows remove, in order, the provider filter (F1 and f2), μ, α, χ_out and χ_in; leave-one-out rows drop one part of RDH (F3).
+    Columns: kind, rule, merged_pairs, merged_nodes, components, max_comp, max_out_deg, max_in_deg, providers."""
+    p = params or RDHParams()
+    N = graph["g_node_count"]
+    conc = effect_concentration(graph)
+    cov = effect_coverage(graph, start, end, bucket=p.bucket)
+    menu = effect_menu_ratio(graph, flash_max=p.flash_max, rho=p.rho, k=p.k, min_n=p.min_n)
+    mu_node = np.full(N, np.nan); phi_node = np.full(N, np.nan)
+    mu_node[menu["id"]], phi_node[menu["id"]] = menu["mu"], menu["phi"]
+    P, R = graph["uk_src"].astype(np.int64), graph["uk_dst"].astype(np.int64)
+    dec = np.asarray(graph["decompress_map"], np.int64)
+    mu = mu_node[P]
+    f1 = ((phi_node >= phi0) | (mu_node >= p.mu0))[P]
+    f2 = np.isin(dec, np.fromiter(f2, np.int64))[P]
+    a_ok, mu_ok = np.asarray(cov["active"]) > p.A, np.isnan(mu) | (mu < p.mu0)
+    so_ok, si_ok = conc["s_out"] > p.tau, conc["s_in"] > p.tau
+    pf = ~(f1 | f2)
+    rows = [("cumulative", "RDH (F3)", a_ok & mu_ok & so_ok & si_ok & pf),
+            ("cumulative", "− provider filter (F0)", a_ok & mu_ok & so_ok & si_ok),
+            ("cumulative", "− μ", a_ok & so_ok & si_ok),
+            ("cumulative", "− α", so_ok & si_ok),
+            ("cumulative", "− χ_out", si_ok),
+            ("cumulative", "− χ_in (no rules)", np.ones(P.size, bool)),
+            ("leave-one-out", "RDH − F1 only", a_ok & mu_ok & so_ok & si_ok & ~f2),
+            ("leave-one-out", f"RDH − {f2_label} only", a_ok & mu_ok & so_ok & si_ok & ~f1),
+            ("leave-one-out", "RDH − μ only", a_ok & so_ok & si_ok & pf),
+            ("leave-one-out", "RDH − α only", mu_ok & so_ok & si_ok & pf),
+            ("leave-one-out", "RDH − χ_out only", a_ok & mu_ok & si_ok & pf),
+            ("leave-one-out", "RDH − χ_in only", a_ok & mu_ok & so_ok & pf)]
+    return pd.DataFrame([{"kind": kind, "rule": rule, **comp_stats(P[m], R[m], N), "providers": int(np.unique(P[m]).size)}
+                         for kind, rule, m in rows])
 
 
 def component_rep(edges: np.ndarray) -> np.ndarray:

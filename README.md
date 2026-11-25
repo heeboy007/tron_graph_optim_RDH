@@ -1,6 +1,8 @@
 
 # tron_graph_optim_RDH
 
+10.5281/zenodo.24503507
+
 ## Resource-Delegation Heuristic
 Developed by ReenAG, will be published in paper soon.
 
