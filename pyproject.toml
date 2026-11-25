@@ -1,6 +1,6 @@
 [project]
 name = "tron-graph-optim-rdh"
-version = "0.1.0"
+version = "1.1.0"
 description = "Resource-Delegation Heuristic (RDH): effect-size component map of TRON resource delegations"
 readme = "README.md"
 requires-python = ">=3.13"
